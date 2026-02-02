@@ -631,6 +631,9 @@ def main():
                 <h3>Available Strategies</h3>
                 <p><strong>Buy-Write:</strong> Generate income by selling calls against long stock positions</p>
                 <p><strong>Enhanced Collar:</strong> Protect downside with puts while selling calls for income</p>
+                <p><strong>Forward-Start:</strong> Income generation using forward-start call options</p>
+                <p><strong>Vol-Target:</strong> Dynamically adjust exposure to maintain target volatility</p>
+                <p><strong>ExpOU-Collar:</strong> Enhanced collar with exponential OU volatility model</p>
             </div>
             """, unsafe_allow_html=True)
         
