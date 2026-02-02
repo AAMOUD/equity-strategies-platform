@@ -28,11 +28,11 @@ st.markdown("""
     }
     
     .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         padding: 2rem;
         border-radius: 15px;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
     
     .main-header h1 {
@@ -54,7 +54,7 @@ st.markdown("""
         padding: 1.5rem;
         border-radius: 12px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-        border-left: 4px solid #667eea;
+        border-left: 4px solid #10b981;
         transition: transform 0.2s, box-shadow 0.2s;
         margin-bottom: 1rem;
     }
@@ -93,7 +93,7 @@ st.markdown("""
     }
     
     .stButton>button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
         color: white;
         border: none;
         border-radius: 8px;
@@ -124,7 +124,7 @@ st.markdown("""
     }
     
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
     }
     
@@ -137,15 +137,15 @@ st.markdown("""
     }
     
     .info-card {
-        background: linear-gradient(135deg, #e0e7ff 0%, #dbeafe 100%);
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
         padding: 1.5rem;
         border-radius: 12px;
         margin: 1rem 0;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid #10b981;
     }
     
     .info-card h3 {
-        color: #1e3a8a;
+        color: #1e293b;
         margin-top: 0;
     }
     
