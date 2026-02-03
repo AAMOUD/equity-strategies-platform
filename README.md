@@ -2,6 +2,8 @@
 
 Professional backtesting platform for equity options strategies with advanced analytics and interactive visualizations.
 
+🚀 **[Try the Live App](https://equity-strategies-platform.streamlit.app/)**
+
 ## Features
 
 - **5 Production-Ready Strategies**
