@@ -728,6 +728,9 @@ def main():
         <div class="info-card">
             <h3>Welcome to Equity Strategies Platform</h3>
             <p>Pick a strategy, choose an asset, set dates, and run your backtest.</p>
+            <p><strong>Implemented Strategies:</strong> Buy-Write, Enhanced Collar, Forward-Start, Vol-Target, ExpOU-Collar.</p>
+            <p><strong>Custom Strategy:</strong> Use “Custom (User Code)” to paste a <code>run_strategy(price_data, vix_data, rf_data, params)</code> function that returns a NAV series.</p>
+            <p><strong>Custom Ticker:</strong> Choose “Custom (Ticker)” in the asset dropdown and enter any Yahoo Finance symbol (e.g., AAPL, SPY, BTC-USD).</p>
         </div>
         """, unsafe_allow_html=True)
         
