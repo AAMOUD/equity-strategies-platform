@@ -166,7 +166,6 @@ st.markdown("""
 
 
 def format_metric(value, format_type='number'):
-    """Format values for display"""
     if isinstance(value, pd.Series):
         value = value.iloc[0] if len(value) > 0 else np.nan
     
@@ -187,7 +186,6 @@ def format_metric(value, format_type='number'):
 
 
 def create_metric_card(label, value, delta=None, delta_positive=False):
-    """Create a metric card"""
     delta_html = ""
     if delta is not None:
         delta_class = "metric-delta-positive" if delta_positive else "metric-delta-negative"
@@ -205,7 +203,6 @@ def create_metric_card(label, value, delta=None, delta_positive=False):
 
 
 def safe_to_float(val, default=None):
-    """Safely convert value to float"""
     try:
         if isinstance(val, pd.Series):
             val = val.iloc[0] if len(val) > 0 else default
@@ -291,6 +288,21 @@ def main():
                 nav_series, metrics, benchmark, benchmark_metrics = BacktestEngine.run_backtest(
                     strategy, price_data, vix_data, rf_data, params
                 )
+                if benchmark is None or len(benchmark) == 0:
+                    benchmark = 100 * price_data / price_data.iloc[0]
+                if isinstance(benchmark, pd.DataFrame):
+                    if 'Close' in benchmark.columns:
+                        benchmark = benchmark['Close']
+                    else:
+                        benchmark = benchmark.iloc[:, 0]
+                benchmark = benchmark.reindex(nav_series.index)
+                benchmark = pd.to_numeric(benchmark, errors='coerce').ffill().bfill()
+                benchmark_metrics = dict(benchmark_metrics)
+                if len(benchmark) > 1:
+                    benchmark_metrics['Final NAV'] = float(benchmark.iloc[-1])
+                    benchmark_metrics['Annualized Return'] = (
+                        (benchmark.iloc[-1] / benchmark.iloc[0]) ** (252 / max(len(benchmark) - 1, 1)) - 1
+                    )
                 
                 st.success("Backtest completed successfully!")
                 
