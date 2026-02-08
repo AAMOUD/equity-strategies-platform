@@ -4,6 +4,12 @@ Professional backtesting platform for equity options strategies with advanced an
 
 **[Try the Live App](https://equity-strategies-platform.streamlit.app/)**
 
+**Implemented Strategies**: Buy-Write, Enhanced Collar, Forward-Start, Vol-Target, ExpOU-Collar.
+
+**Custom Strategy**: Paste a Python function `run_strategy(price_data, vix_data, rf_data, params)` directly in the UI to run your own logic and return a NAV series.
+
+**Custom Ticker**: In the asset dropdown, choose “Custom (Ticker)” and enter any Yahoo Finance symbol (e.g., AAPL, SPY, BTC-USD).
+
 ## Features
 
 - **5 Production-Ready Strategies**
