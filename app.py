@@ -213,6 +213,38 @@ def safe_to_float(val, default=None):
         return default
 
 
+def calculate_metrics(nav_series):
+    """Calculate performance metrics from NAV series."""
+    returns = nav_series.pct_change(fill_method=None).dropna()
+    if len(returns) == 0:
+        return {
+            'Annualized Return': np.nan,
+            'Annualized Volatility': np.nan,
+            'Sharpe Ratio': np.nan,
+            'Max Drawdown': np.nan,
+            'Final NAV': nav_series.iloc[-1] if len(nav_series) else np.nan,
+            'Total Return': np.nan
+        }
+
+    ann_return = (nav_series.iloc[-1] / nav_series.iloc[0]) ** (252 / len(returns)) - 1
+    ann_vol = returns.std() * np.sqrt(252)
+    sharpe = ann_return / ann_vol if ann_vol > 0 else np.nan
+
+    cumulative = (1 + returns).cumprod()
+    running_max = cumulative.expanding().max()
+    drawdown = (cumulative - running_max) / running_max
+    mdd = drawdown.min()
+
+    return {
+        'Annualized Return': ann_return,
+        'Annualized Volatility': ann_vol,
+        'Sharpe Ratio': sharpe,
+        'Max Drawdown': mdd,
+        'Final NAV': nav_series.iloc[-1],
+        'Total Return': (nav_series.iloc[-1] / nav_series.iloc[0]) - 1
+    }
+
+
 def main():
     st.markdown("""
     <div class="main-header">
@@ -225,9 +257,10 @@ def main():
         st.markdown("### Configuration Panel")
         
         st.markdown("#### Strategy Selection")
+        strategy_options = BacktestEngine.get_available_strategies() + ["Custom (User Code)"]
         strategy = st.selectbox(
             "Choose Strategy",
-            BacktestEngine.get_available_strategies(),
+            strategy_options,
             help="Select the trading strategy to backtest"
         )
         
@@ -255,7 +288,7 @@ def main():
         
         st.markdown("#### Parameters")
         
-        default_params = BacktestEngine.get_default_params(strategy)
+        default_params = BacktestEngine.get_default_params(strategy) if strategy != "Custom (User Code)" else {}
         params = {}
         
         for param_name, default_value in default_params.items():
@@ -274,6 +307,29 @@ def main():
                     value=default_value,
                     step=0.001
                 )
+
+        user_code = None
+        if strategy == "Custom (User Code)":
+            st.markdown("#### Custom Strategy Code")
+            st.info("Paste a function named run_strategy(price_data, vix_data, rf_data, params) that returns a pandas Series of NAV values.")
+            default_code = (
+                "import pandas as pd\n"
+                "\n"
+                "def run_strategy(price_data, vix_data, rf_data, params):\n"
+                "    df = pd.concat([price_data, vix_data, rf_data], axis=1).dropna()\n"
+                "    df.columns = ['S', 'VIX', 'Rf']\n"
+                "    nav = 100.0\n"
+                "    nav_series = pd.Series(index=df.index, dtype='float64')\n"
+                "    nav_series.iloc[0] = nav\n"
+                "    for i in range(1, len(df)):\n"
+                "        S_prev = df['S'].iloc[i - 1]\n"
+                "        S_curr = df['S'].iloc[i]\n"
+                "        ret_stock = (S_curr - S_prev) / S_prev\n"
+                "        nav *= (1 + ret_stock)\n"
+                "        nav_series.iloc[i] = nav\n"
+                "    return nav_series\n"
+            )
+            user_code = st.text_area("", value=default_code, height=260)
         
         st.markdown("---")
         run_button = st.button("Run Backtest", use_container_width=True, type="primary", key="run_backtest_btn")
@@ -285,9 +341,34 @@ def main():
                     asset, start_date, end_date
                 )
                 
-                nav_series, metrics, benchmark, benchmark_metrics = BacktestEngine.run_backtest(
-                    strategy, price_data, vix_data, rf_data, params
-                )
+                if strategy == "Custom (User Code)":
+                    if not user_code or not user_code.strip():
+                        raise ValueError("Custom strategy code is empty.")
+
+                    exec_globals = {"pd": pd, "np": np}
+                    exec_locals = {}
+                    exec(user_code, exec_globals, exec_locals)
+                    run_strategy = exec_locals.get("run_strategy") or exec_globals.get("run_strategy")
+                    if not callable(run_strategy):
+                        raise ValueError("Custom code must define run_strategy(price_data, vix_data, rf_data, params).")
+
+                    nav_series = run_strategy(price_data, vix_data, rf_data, params)
+                    if isinstance(nav_series, pd.DataFrame):
+                        nav_series = nav_series.iloc[:, 0]
+                    if not isinstance(nav_series, pd.Series):
+                        nav_series = pd.Series(nav_series, index=price_data.index[:len(nav_series)])
+                    nav_series = nav_series.reindex(price_data.index).astype(float).ffill().bfill()
+
+                    metrics = calculate_metrics(nav_series)
+                    benchmark = 100 * price_data / price_data.iloc[0]
+                    benchmark_metrics = {
+                        'Annualized Return': ((price_data.iloc[-1] / price_data.iloc[0]) ** (252 / len(price_data)) - 1),
+                        'Final NAV': benchmark.iloc[-1]
+                    }
+                else:
+                    nav_series, metrics, benchmark, benchmark_metrics = BacktestEngine.run_backtest(
+                        strategy, price_data, vix_data, rf_data, params
+                    )
                 if benchmark is None or len(benchmark) == 0:
                     benchmark = 100 * price_data / price_data.iloc[0]
                 if isinstance(benchmark, pd.DataFrame):
