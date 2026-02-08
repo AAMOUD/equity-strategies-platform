@@ -264,7 +264,7 @@ def main():
         )
         
         st.markdown("#### Asset Selection")
-        asset_options = DataFetcher.get_available_assets() + ["Custom (Ticker)"]
+        asset_options = ["Custom (Ticker)"] + DataFetcher.get_available_assets()
         asset_choice = st.selectbox(
             "Choose Asset",
             asset_options,

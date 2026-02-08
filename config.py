@@ -104,4 +104,4 @@ DATA_SOURCES = {
 }
 
 # Default date range (in days)
-DEFAULT_BACKTEST_DAYS = 365 * 5  # 5 years
+DEFAULT_BACKTEST_DAYS = 365 * 5  
