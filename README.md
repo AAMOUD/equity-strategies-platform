@@ -27,7 +27,8 @@ Professional backtesting platform for equity options strategies with advanced an
 
 - **Market Data Integration**
   - Yahoo Finance integration via yfinance
-  - S&P 500, Nasdaq 100, Russell 2000, major stocks
+  - Built-in list of indices and major stocks
+  - **Custom tickers**: choose “Custom (Ticker)” in the asset dropdown and enter any Yahoo Finance symbol (e.g., AAPL, SPY, BTC-USD)
   - VIX volatility data
   - Risk-free rates (13-week T-Bill)
 
