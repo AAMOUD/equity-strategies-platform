@@ -214,7 +214,6 @@ def safe_to_float(val, default=None):
 
 
 def calculate_metrics(nav_series):
-    """Calculate performance metrics from NAV series."""
     returns = nav_series.pct_change(fill_method=None).dropna()
     if len(returns) == 0:
         return {
@@ -265,11 +264,20 @@ def main():
         )
         
         st.markdown("#### Asset Selection")
-        asset = st.selectbox(
+        asset_options = DataFetcher.get_available_assets() + ["Custom (Ticker)"]
+        asset_choice = st.selectbox(
             "Choose Asset",
-            DataFetcher.get_available_assets(),
+            asset_options,
             help="Select the underlying asset"
         )
+        custom_ticker = None
+        if asset_choice == "Custom (Ticker)":
+            custom_ticker = st.text_input(
+                "Custom Ticker",
+                value="",
+                help="Enter any Yahoo Finance ticker (e.g., SPY, QQQ, BTC-USD)"
+            )
+        asset = custom_ticker.strip().upper() if custom_ticker else asset_choice
         
         st.markdown("#### Date Range")
         col1, col2 = st.columns(2)
@@ -354,6 +362,9 @@ def main():
     if run_button:
         with st.spinner("Running backtest..."):
             try:
+                if asset_choice == "Custom (Ticker)" and (not asset or asset == "CUSTOM (TICKER)"):
+                    raise ValueError("Please enter a valid custom ticker.")
+
                 price_data, vix_data, rf_data = DataFetcher.fetch_data(
                     asset, start_date, end_date
                 )

@@ -5,7 +5,6 @@ import numpy as np
 
 
 class BaseStrategy(ABC):
-    """Abstract base class for all trading strategies."""
     
     def __init__(self, name):
         self.name = name
@@ -14,11 +13,9 @@ class BaseStrategy(ABC):
     
     @abstractmethod
     def run_backtest(self, price_data, vix_data, rf_data, params):
-        """Run backtest with given data and parameters."""
         pass
     
     def calculate_metrics(self, nav_series):
-        """Calculate performance metrics from NAV series."""
         returns = nav_series.pct_change(fill_method=None).dropna()
         
         ann_return = (nav_series.iloc[-1] / nav_series.iloc[0]) ** (252 / len(returns)) - 1

@@ -10,7 +10,6 @@ import pandas as pd
 
 
 class BacktestEngine:
-    """Orchestrate strategy backtests and benchmark comparison."""
     
     STRATEGIES = {
         'Buy-Write': BuyWriteStrategy(),
@@ -22,12 +21,10 @@ class BacktestEngine:
     
     @staticmethod
     def get_available_strategies():
-        """Return list of available strategies."""
         return list(BacktestEngine.STRATEGIES.keys())
     
     @staticmethod
     def get_default_params(strategy_name):
-        """Get default parameters for a strategy."""
         strategy = BacktestEngine.STRATEGIES.get(strategy_name)
         if strategy:
             return strategy.default_params
@@ -35,7 +32,6 @@ class BacktestEngine:
     
     @staticmethod
     def run_backtest(strategy_name, price_data, vix_data, rf_data, params):
-        """Execute backtest and compute metrics."""
         strategy = BacktestEngine.STRATEGIES.get(strategy_name)
         if not strategy:
             raise ValueError(f"Unknown strategy: {strategy_name}")

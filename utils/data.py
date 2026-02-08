@@ -1,4 +1,3 @@
-"""Data utilities for fetching market data"""
 import yfinance as yf
 import pandas as pd
 import numpy as np
