@@ -20,6 +20,11 @@ Professional backtesting platform for equity options strategies with advanced an
   - Monthly returns distribution
   - Benchmark comparison (Buy & Hold)
 
+- **Custom Strategy (User Code)**
+  - Paste your own Python strategy in the UI
+  - Implement a `run_strategy(price_data, vix_data, rf_data, params)` function
+  - Return a pandas Series of NAV values
+
 - **Market Data Integration**
   - Yahoo Finance integration via yfinance
   - S&P 500, Nasdaq 100, Russell 2000, major stocks
@@ -52,6 +57,34 @@ streamlit run app.py
 ```
 
 The application will open in your browser at `http://localhost:8501`
+
+## Custom Strategy (User Code)
+
+You can run your own strategy directly in the UI:
+
+1. Select **Custom (User Code)** from the strategy dropdown.
+2. Paste a Python function named `run_strategy(price_data, vix_data, rf_data, params)`.
+3. Return a pandas Series of NAV values indexed by date.
+
+Example:
+
+```python
+import pandas as pd
+
+def run_strategy(price_data, vix_data, rf_data, params):
+  df = pd.concat([price_data, vix_data, rf_data], axis=1).dropna()
+  df.columns = ['S', 'VIX', 'Rf']
+  nav = 100.0
+  nav_series = pd.Series(index=df.index, dtype='float64')
+  nav_series.iloc[0] = nav
+  for i in range(1, len(df)):
+    S_prev = df['S'].iloc[i - 1]
+    S_curr = df['S'].iloc[i]
+    ret_stock = (S_curr - S_prev) / S_prev
+    nav *= (1 + ret_stock)
+    nav_series.iloc[i] = nav
+  return nav_series
+```
 
 ## Strategy Configuration
 

@@ -6,27 +6,62 @@ from datetime import datetime, timedelta
 
 
 class DataFetcher:
-    """Fetch market data from Yahoo Finance."""
     
     TICKER_MAP = {
         'S&P 500': '^GSPC',
         'Nasdaq 100': '^NDX',
         'Russell 2000': '^RUT',
+        'Dow Jones': '^DJI',
+        'FTSE 100': '^FTSE',
+        'DAX': '^GDAXI',
+        'Nikkei 225': '^N225',
+        'Euro Stoxx 50': '^STOXX50E',
+        'Hang Seng': '^HSI',
+        'CAC 40': '^FCHI',
+        'S&P 500 Equal Weight': '^SPXEW',
+        'S&P 400 MidCap': '^MID',
+        'S&P 500 Low Volatility': '^SPLV',
         'Apple': 'AAPL',
         'Microsoft': 'MSFT',
         'Tesla': 'TSLA',
         'Amazon': 'AMZN',
         'Google': 'GOOGL',
+        'Meta': 'META',
+        'NVIDIA': 'NVDA',
+        'Alphabet (Class C)': 'GOOG',
+        'Berkshire Hathaway B': 'BRK-B',
+        'JPMorgan Chase': 'JPM',
+        'Johnson & Johnson': 'JNJ',
+        'Procter & Gamble': 'PG',
+        'Visa': 'V',
+        'Mastercard': 'MA',
+        'Coca-Cola': 'KO',
+        'PepsiCo': 'PEP',
+        'Exxon Mobil': 'XOM',
+        'Chevron': 'CVX',
+        'Walmart': 'WMT',
+        'Costco': 'COST',
+        'Netflix': 'NFLX',
+        'Adobe': 'ADBE',
+        'Salesforce': 'CRM',
+        'Intel': 'INTC',
+        'AMD': 'AMD',
+        'Cisco': 'CSCO',
+        'Pfizer': 'PFE',
+        'UnitedHealth': 'UNH',
+        'Boeing': 'BA',
+        'Gold': 'GC=F',
+        'Oil (WTI)': 'CL=F',
+        'US Dollar Index': 'DX-Y.NYB',
+        'US 10Y Yield': '^TNX',
     }
     
     @staticmethod
     def get_available_assets():
-        """Return list of available assets."""
         return list(DataFetcher.TICKER_MAP.keys())
     
     @staticmethod
     def fetch_data(asset_name, start_date, end_date):
-        """Fetch price, VIX, and risk-free rate data."""
         ticker = DataFetcher.TICKER_MAP.get(asset_name, asset_name)
         
         try:
@@ -53,7 +88,6 @@ class DataFetcher:
     
     @staticmethod
     def validate_date_range(start_date, end_date):
-        """Validate and return date range."""
         if isinstance(start_date, str):
             start_date = datetime.strptime(start_date, '%Y-%m-%d')
         if isinstance(end_date, str):

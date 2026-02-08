@@ -106,8 +106,9 @@ class EnhancedCollarStrategy(BaseStrategy):
                     strike_fsc = kf_pct * ST
                     call_premium = self.bs_call(ST, strike_fsc, T, r, sigma)
                     
-                    net_cost = max(put_spread_cost - call_premium, 0) * tx_cost
+                    net_cost = max(put_spread_cost - call_premium, 0)
                     nav -= net_cost
+                    nav *= (1 - tx_cost)
                 
                 except:
                     pass

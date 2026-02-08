@@ -300,13 +300,30 @@ def main():
                     value=default_value
                 )
             elif isinstance(default_value, float):
-                params[param_name] = st.slider(
-                    param_name.replace('_', ' ').title(),
-                    min_value=float(default_value * 0.5),
-                    max_value=float(default_value * 2),
-                    value=default_value,
-                    step=0.001
-                )
+                if param_name == 'transaction_cost':
+                    params[param_name] = st.number_input(
+                        param_name.replace('_', ' ').title(),
+                        min_value=0.0,
+                        max_value=0.1,
+                        value=float(default_value),
+                        step=0.0001,
+                        format="%.4f"
+                    )
+                else:
+                    step = 0.001
+                    if default_value < 0.01:
+                        step = 0.0001
+                    elif default_value < 0.1:
+                        step = 0.001
+                    else:
+                        step = 0.01
+                    params[param_name] = st.slider(
+                        param_name.replace('_', ' ').title(),
+                        min_value=float(default_value * 0.5),
+                        max_value=float(default_value * 2),
+                        value=default_value,
+                        step=step
+                    )
 
         user_code = None
         if strategy == "Custom (User Code)":
@@ -699,7 +716,7 @@ def main():
         st.markdown("""
         <div class="info-card">
             <h3>Welcome to Equity Strategies Platform</h3>
-            <p>Your professional backtesting platform for equity options strategies.</p>
+            <p>Pick a strategy, choose an asset, set dates, and run your backtest.</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -708,48 +725,22 @@ def main():
         with col1:
             st.markdown("""
             <div class="info-card">
-                <h3>Quick Start Guide</h3>
+                <h3>Quick Start</h3>
                 <ol>
-                    <li>Select a strategy from the sidebar</li>
-                    <li>Choose an underlying asset</li>
-                    <li>Set your preferred date range</li>
-                    <li>Adjust strategy parameters</li>
-                    <li>Click "Run Backtest" to analyze</li>
+                    <li>Select a strategy</li>
+                    <li>Choose an asset</li>
+                    <li>Set date range</li>
+                    <li>Adjust parameters</li>
+                    <li>Run backtest</li>
                 </ol>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("""
-            <div class="info-card">
-                <h3>Available Strategies</h3>
-                <p><strong>Buy-Write:</strong> Generate income by selling calls against long stock positions</p>
-                <p><strong>Enhanced Collar:</strong> Protect downside with puts while selling calls for income</p>
-                <p><strong>Forward-Start:</strong> Income generation using forward-start call options</p>
-                <p><strong>Vol-Target:</strong> Dynamically adjust exposure to maintain target volatility</p>
-                <p><strong>ExpOU-Collar:</strong> Enhanced collar with exponential OU volatility model</p>
             </div>
             """, unsafe_allow_html=True)
         
         with col2:
             st.markdown("""
             <div class="info-card">
-                <h3>Key Metrics Explained</h3>
-                <p><strong>Sharpe Ratio:</strong> Risk-adjusted returns (higher is better, >1 is good)</p>
-                <p><strong>Max Drawdown:</strong> Largest peak-to-trough decline</p>
-                <p><strong>Annualized Return:</strong> Average yearly performance</p>
-                <p><strong>Volatility:</strong> Strategy risk level (lower is more stable)</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("""
-            <div class="info-card">
-                <h3>Pro Tips</h3>
-                <ul>
-                    <li>Test strategies over different market conditions</li>
-                    <li>Compare Sharpe ratios to assess risk-adjusted performance</li>
-                    <li>Monitor drawdowns for risk management</li>
-                    <li>Export results for deeper analysis</li>
-                </ul>
+                <h3>Metrics at a Glance</h3>
+                <p><strong>Sharpe</strong>, <strong>Max Drawdown</strong>, <strong>Annualized Return</strong>, <strong>Volatility</strong></p>
             </div>
             """, unsafe_allow_html=True)
 
