@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 
 from utils import DataFetcher
 from backtest import BacktestEngine
+from strategies.base import BaseStrategy
 
 st.set_page_config(
     page_title="Equity Strategies Platform",
@@ -213,35 +214,6 @@ def safe_to_float(val, default=None):
         return default
 
 
-def calculate_metrics(nav_series):
-    returns = nav_series.pct_change(fill_method=None).dropna()
-    if len(returns) == 0:
-        return {
-            'Annualized Return': np.nan,
-            'Annualized Volatility': np.nan,
-            'Sharpe Ratio': np.nan,
-            'Max Drawdown': np.nan,
-            'Final NAV': nav_series.iloc[-1] if len(nav_series) else np.nan,
-            'Total Return': np.nan
-        }
-
-    ann_return = (nav_series.iloc[-1] / nav_series.iloc[0]) ** (252 / len(returns)) - 1
-    ann_vol = returns.std() * np.sqrt(252)
-    sharpe = ann_return / ann_vol if ann_vol > 0 else np.nan
-
-    cumulative = (1 + returns).cumprod()
-    running_max = cumulative.expanding().max()
-    drawdown = (cumulative - running_max) / running_max
-    mdd = drawdown.min()
-
-    return {
-        'Annualized Return': ann_return,
-        'Annualized Volatility': ann_vol,
-        'Sharpe Ratio': sharpe,
-        'Max Drawdown': mdd,
-        'Final NAV': nav_series.iloc[-1],
-        'Total Return': (nav_series.iloc[-1] / nav_series.iloc[0]) - 1
-    }
 
 
 def main():
@@ -401,7 +373,7 @@ def main():
                         nav_series = pd.Series(nav_series, index=price_data.index[:len(nav_series)])
                     nav_series = nav_series.reindex(price_data.index).astype(float).ffill().bfill()
 
-                    metrics = calculate_metrics(nav_series)
+                    metrics = BaseStrategy.calculate_metrics(nav_series, rf_data)
                     benchmark = 100 * price_data / price_data.iloc[0]
                     benchmark_metrics = {
                         'Annualized Return': ((price_data.iloc[-1] / price_data.iloc[0]) ** (252 / len(price_data)) - 1),

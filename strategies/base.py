@@ -15,8 +15,19 @@ class BaseStrategy(ABC):
     def run_backtest(self, price_data, vix_data, rf_data, params):
         pass
 
-    def calculate_metrics(self, nav_series, rf_data=None):
+    @staticmethod
+    def calculate_metrics(nav_series, rf_data=None):
         returns = nav_series.pct_change(fill_method=None).dropna()
+
+        if len(returns) == 0:
+            return {
+                'Annualized Return': np.nan,
+                'Annualized Volatility': np.nan,
+                'Sharpe Ratio': np.nan,
+                'Max Drawdown': np.nan,
+                'Final NAV': nav_series.iloc[-1] if len(nav_series) else np.nan,
+                'Total Return': np.nan,
+            }
 
         ann_return = (nav_series.iloc[-1] / nav_series.iloc[0]) ** (252 / len(returns)) - 1
         ann_vol = returns.std() * np.sqrt(252)
@@ -38,5 +49,5 @@ class BaseStrategy(ABC):
             'Sharpe Ratio': sharpe,
             'Max Drawdown': mdd,
             'Final NAV': nav_series.iloc[-1],
-            'Total Return': (nav_series.iloc[-1] / nav_series.iloc[0]) - 1
+            'Total Return': (nav_series.iloc[-1] / nav_series.iloc[0]) - 1,
         }
