@@ -22,9 +22,8 @@ class BaseStrategy(ABC):
         ann_vol = returns.std() * np.sqrt(252)
         sharpe = ann_return / ann_vol if ann_vol > 0 else np.nan
         
-        cumulative = (1 + returns).cumprod()
-        running_max = cumulative.expanding().max()
-        drawdown = (cumulative - running_max) / running_max
+        running_max = nav_series.expanding().max()
+        drawdown = (nav_series - running_max) / running_max
         mdd = drawdown.min()
         
         return {
