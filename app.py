@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 from utils import DataFetcher
 from backtest import BacktestEngine
 from strategies.base import BaseStrategy
+from config import PARAM_BOUNDS
 
 st.set_page_config(
     page_title="Equity Strategies Platform",
@@ -271,39 +272,38 @@ def main():
         default_params = BacktestEngine.get_default_params(strategy) if strategy != "Custom (User Code)" else {}
         params = {}
         
+        strategy_bounds = PARAM_BOUNDS.get(strategy, {})
         for param_name, default_value in default_params.items():
+            label = param_name.replace('_', ' ').title()
+            bounds = strategy_bounds.get(param_name)
+            if bounds is None:
+                continue
+            lo, hi, step = bounds
             if isinstance(default_value, int):
                 params[param_name] = st.slider(
-                    param_name.replace('_', ' ').title(),
-                    min_value=int(default_value * 0.5),
-                    max_value=int(default_value * 2),
-                    value=default_value
+                    label,
+                    min_value=int(lo),
+                    max_value=int(hi),
+                    value=default_value,
+                    step=int(step),
                 )
-            elif isinstance(default_value, float):
-                if param_name == 'transaction_cost':
-                    params[param_name] = st.number_input(
-                        param_name.replace('_', ' ').title(),
-                        min_value=0.0,
-                        max_value=0.1,
-                        value=float(default_value),
-                        step=0.0001,
-                        format="%.4f"
-                    )
-                else:
-                    step = 0.001
-                    if default_value < 0.01:
-                        step = 0.0001
-                    elif default_value < 0.1:
-                        step = 0.001
-                    else:
-                        step = 0.01
-                    params[param_name] = st.slider(
-                        param_name.replace('_', ' ').title(),
-                        min_value=float(default_value * 0.5),
-                        max_value=float(default_value * 2),
-                        value=default_value,
-                        step=step
-                    )
+            elif param_name == 'transaction_cost':
+                params[param_name] = st.number_input(
+                    label,
+                    min_value=float(lo),
+                    max_value=float(hi),
+                    value=float(default_value),
+                    step=float(step),
+                    format="%.4f",
+                )
+            else:
+                params[param_name] = st.slider(
+                    label,
+                    min_value=float(lo),
+                    max_value=float(hi),
+                    value=float(default_value),
+                    step=float(step),
+                )
 
         user_code = None
         if strategy == "Custom (User Code)":

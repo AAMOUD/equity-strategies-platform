@@ -104,4 +104,39 @@ DATA_SOURCES = {
 }
 
 # Default date range (in days)
-DEFAULT_BACKTEST_DAYS = 365 * 5  
+DEFAULT_BACKTEST_DAYS = 365 * 5
+
+# Explicit slider bounds per strategy param: (min, max, step)
+PARAM_BOUNDS = {
+    'Buy-Write': {
+        'maturity_days':    (5,    63,    1),
+        'strike_offset':    (0.0,  0.20,  0.01),
+        'transaction_cost': (0.0,  0.05,  0.0001),
+    },
+    'Enhanced Collar': {
+        'maturity_days':    (21,   252,   1),
+        'k1_pct':           (0.80, 1.00,  0.01),
+        'k2_pct':           (0.50, 0.95,  0.01),
+        'kf_pct':           (1.00, 1.20,  0.01),
+        'transaction_cost': (0.0,  0.05,  0.0001),
+    },
+    'Forward-Start': {
+        'forward_start_days': (5,   63,   1),
+        'maturity_days':      (21,  252,  1),
+        'strike_mult':        (1.0, 1.20, 0.01),
+        'transaction_cost':   (0.0, 0.05, 0.0001),
+    },
+    'Vol-Target': {
+        'target_vol':       (0.05, 0.40, 0.01),
+        'lookback_days':    (5,    63,   1),
+        'rebalance_freq':   (1,    21,   1),
+        'transaction_cost': (0.0,  0.05, 0.0001),
+    },
+    'ExpOU-Collar': {
+        'maturity_days':    (21,   252,   1),
+        'k1_pct':           (0.80, 1.00,  0.01),
+        'k2_pct':           (0.50, 0.95,  0.01),
+        'kf_pct':           (1.00, 1.20,  0.01),
+        'transaction_cost': (0.0,  0.05,  0.0001),
+    },
+}
