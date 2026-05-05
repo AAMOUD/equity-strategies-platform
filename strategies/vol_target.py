@@ -60,6 +60,6 @@ class VolTargetStrategy(BaseStrategy):
         nav_series = nav_series.ffill().fillna(100.0)
         
         self.results = nav_series
-        self.metrics = self.calculate_metrics(nav_series)
+        self.metrics = self.calculate_metrics(nav_series, df['Rf'])
         
         return nav_series, self.metrics

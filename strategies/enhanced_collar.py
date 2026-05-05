@@ -1,4 +1,5 @@
 """Enhanced Collar Strategy Implementation"""
+import logging
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
@@ -74,7 +75,8 @@ class EnhancedCollarStrategy(BaseStrategy):
                 nav -= net_cost
                 nav *= (1 - tx_cost)
                 has_position = True
-            except:
+            except Exception as e:
+                logging.warning(f"[EnhancedCollar] pricing failed at {t0}: {e}")
                 has_position = False
 
             period_prices = df.loc[t0:t1, 'S']
@@ -99,6 +101,6 @@ class EnhancedCollarStrategy(BaseStrategy):
         nav_series = nav_series.ffill().fillna(100.0)
 
         self.results = nav_series
-        self.metrics = self.calculate_metrics(nav_series)
+        self.metrics = self.calculate_metrics(nav_series, df['Rf'])
 
         return nav_series, self.metrics

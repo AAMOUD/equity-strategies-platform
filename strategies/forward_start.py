@@ -1,4 +1,5 @@
 """Forward-Start Call Strategy Implementation"""
+import logging
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
@@ -59,7 +60,8 @@ class ForwardStartStrategy(BaseStrategy):
             
             try:
                 premium = self.price_forward_start_call(S0, strike_mult, T0, T, r, sigma)
-            except:
+            except Exception as e:
+                logging.warning(f"[ForwardStart] pricing failed at {t0}: {e}")
                 premium = 0
             
             period_prices = df.loc[t0:t1, 'S']
@@ -87,6 +89,6 @@ class ForwardStartStrategy(BaseStrategy):
         nav_series = nav_series.ffill().fillna(100.0)
         
         self.results = nav_series
-        self.metrics = self.calculate_metrics(nav_series)
+        self.metrics = self.calculate_metrics(nav_series, df['Rf'])
         
         return nav_series, self.metrics
