@@ -63,15 +63,18 @@ class ForwardStartStrategy(BaseStrategy):
                 premium = 0
             
             period_prices = df.loc[t0:t1, 'S']
+            fwd_idx = min(forward_days, len(period_prices) - 1)
+            S_forward = period_prices.iloc[fwd_idx]
+            strike = strike_mult * S_forward
+
             for j in range(1, len(period_prices)):
                 date = period_prices.index[j]
                 S_prev = period_prices.iloc[j-1]
                 S_curr = period_prices.iloc[j]
-                
+
                 ret_stock = (S_curr - S_prev) / S_prev
-                
+
                 if date == t1:
-                    strike = strike_mult * S0
                     payoff_call = max(S_curr - strike, 0)
                     ret_call = (premium - payoff_call) / S0
                     total_ret = ret_stock + ret_call - tx_cost
