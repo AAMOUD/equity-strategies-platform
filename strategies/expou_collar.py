@@ -74,7 +74,7 @@ class ExpOUCollarStrategy(BaseStrategy):
         
         P1 = ExpOUCollarStrategy.bs_put(S, K1, T, r, sigma_eff)
         P2 = ExpOUCollarStrategy.bs_put(S, K2, T, r, sigma_eff)
-        return P2 - P1
+        return P1 - P2
     
     def run_backtest(self, price_data, vix_data, rf_data, params):
         """Execute ExpOU collar strategy backtest."""
