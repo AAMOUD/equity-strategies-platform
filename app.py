@@ -522,9 +522,7 @@ def main():
                 
                 with tab2:
                     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                    cumulative = nav_series / 100
-                    running_max = cumulative.expanding().max()
-                    drawdown = (cumulative - running_max) / running_max * 100
+                    drawdown = BaseStrategy.drawdown_series(nav_series) * 100
                     
                     fig = go.Figure()
                     fig.add_trace(go.Scatter(

@@ -16,6 +16,11 @@ class BaseStrategy(ABC):
         pass
 
     @staticmethod
+    def drawdown_series(nav_series):
+        running_max = nav_series.expanding().max()
+        return (nav_series - running_max) / running_max
+
+    @staticmethod
     def calculate_metrics(nav_series, rf_data=None):
         returns = nav_series.pct_change(fill_method=None).dropna()
 
@@ -39,8 +44,7 @@ class BaseStrategy(ABC):
 
         sharpe = (ann_return - rf_ann) / ann_vol if ann_vol > 0 else np.nan
 
-        running_max = nav_series.expanding().max()
-        drawdown = (nav_series - running_max) / running_max
+        drawdown = BaseStrategy.drawdown_series(nav_series)
         mdd = drawdown.min()
 
         return {
