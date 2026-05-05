@@ -6,7 +6,6 @@ from strategies import (
     VolTargetStrategy,
     ExpOUCollarStrategy
 )
-import pandas as pd
 
 
 class BacktestEngine:

@@ -1,7 +1,6 @@
 import yfinance as yf
 import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

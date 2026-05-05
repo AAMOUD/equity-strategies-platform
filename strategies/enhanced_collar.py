@@ -38,7 +38,6 @@ class EnhancedCollarStrategy(BaseStrategy):
         return np.exp(-q*T)*S*norm.cdf(d1) - K*np.exp(-r*T)*norm.cdf(d2)
     
     def run_backtest(self, price_data, vix_data, rf_data, params):
-        """Execute enhanced collar strategy backtest."""
         df = pd.concat([price_data, vix_data, rf_data], axis=1).dropna()
         df.columns = ['S', 'VIX', 'Rf']
 

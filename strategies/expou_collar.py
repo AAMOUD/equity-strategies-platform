@@ -62,7 +62,8 @@ class ExpOUCollarStrategy(BaseStrategy):
             m = np.exp(np.mean(log_vix2))
             
             return {'alpha': alpha, 'k': k, 'm': m}
-        except:
+        except Exception as e:
+            logging.warning(f"[ExpOUCollar] calibration failed: {e}")
             return {'alpha': 0.1, 'k': 0.2, 'm': 0.15}
     
     @staticmethod
@@ -78,7 +79,6 @@ class ExpOUCollarStrategy(BaseStrategy):
         return P1 - P2
     
     def run_backtest(self, price_data, vix_data, rf_data, params):
-        """Execute ExpOU collar strategy backtest."""
         df = pd.concat([price_data, vix_data, rf_data], axis=1).dropna()
         df.columns = ['S', 'VIX', 'Rf']
 

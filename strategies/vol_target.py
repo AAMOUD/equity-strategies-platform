@@ -17,7 +17,6 @@ class VolTargetStrategy(BaseStrategy):
         }
     
     def run_backtest(self, price_data, vix_data, rf_data, params):
-        """Execute volatility targeting strategy backtest."""
         df = pd.concat([price_data, vix_data, rf_data], axis=1).dropna()
         df.columns = ['S', 'VIX', 'Rf']
         
