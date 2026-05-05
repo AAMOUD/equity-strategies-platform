@@ -373,7 +373,21 @@ def main():
                     if not user_code or not user_code.strip():
                         raise ValueError("Custom strategy code is empty.")
 
-                    exec_globals = {"pd": pd, "np": np}
+                    exec_globals = {
+                        "__builtins__": {
+                            "range": range, "len": len, "print": print,
+                            "float": float, "int": int, "str": str,
+                            "max": max, "min": min, "abs": abs, "round": round,
+                            "enumerate": enumerate, "zip": zip, "list": list,
+                            "dict": dict, "tuple": tuple, "bool": bool,
+                            "isinstance": isinstance, "sum": sum,
+                            "sorted": sorted, "reversed": reversed,
+                            "map": map, "filter": filter,
+                            "ValueError": ValueError, "TypeError": TypeError,
+                        },
+                        "pd": pd,
+                        "np": np,
+                    }
                     exec_locals = {}
                     exec(user_code, exec_globals, exec_locals)
                     run_strategy = exec_locals.get("run_strategy") or exec_globals.get("run_strategy")
