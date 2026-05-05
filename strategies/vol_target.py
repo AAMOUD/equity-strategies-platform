@@ -48,7 +48,8 @@ class VolTargetStrategy(BaseStrategy):
                 
                 if realized_vol > 0.01:
                     new_exposure = target_vol / realized_vol
-                    new_exposure = np.clip(new_exposure, 0.0, 2.0)
+                    new_exposure = np.clip(new_exposure, 0.0, 1.5)
+                    new_exposure = 0.5 * new_exposure + 0.5 * exposure
                     
                     if abs(new_exposure - exposure) > 0.05:
                         nav *= (1 - tx_cost * abs(new_exposure - exposure))
