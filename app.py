@@ -217,6 +217,11 @@ def safe_to_float(val, default=None):
 
 
 
+@st.cache_data(ttl=3600)
+def fetch_cached_data(asset, start_date, end_date):
+    return DataFetcher.fetch_data(asset, start_date, end_date)
+
+
 def main():
     st.markdown("""
     <div class="main-header">
@@ -337,7 +342,7 @@ def main():
                 if asset_choice == "Custom (Ticker)" and (not asset or asset == "CUSTOM (TICKER)"):
                     raise ValueError("Please enter a valid custom ticker.")
 
-                price_data, vix_data, rf_data = DataFetcher.fetch_data(
+                price_data, vix_data, rf_data = fetch_cached_data(
                     asset, start_date, end_date
                 )
                 
@@ -392,13 +397,6 @@ def main():
                         benchmark = benchmark.iloc[:, 0]
                 benchmark = benchmark.reindex(nav_series.index)
                 benchmark = pd.to_numeric(benchmark, errors='coerce').ffill().bfill()
-                benchmark_metrics = dict(benchmark_metrics)
-                if len(benchmark) > 1:
-                    benchmark_metrics['Final NAV'] = float(benchmark.iloc[-1])
-                    benchmark_metrics['Annualized Return'] = (
-                        (benchmark.iloc[-1] / benchmark.iloc[0]) ** (252 / max(len(benchmark) - 1, 1)) - 1
-                    )
-                
                 st.success("Backtest completed successfully!")
                 
                 st.markdown('<div class="section-header"><h2>Performance Summary</h2></div>', unsafe_allow_html=True)
