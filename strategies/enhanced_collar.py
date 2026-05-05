@@ -40,56 +40,65 @@ class EnhancedCollarStrategy(BaseStrategy):
         """Execute enhanced collar strategy backtest."""
         df = pd.concat([price_data, vix_data, rf_data], axis=1).dropna()
         df.columns = ['S', 'VIX', 'Rf']
-        
+
         maturity_days = params.get('maturity_days', self.default_params['maturity_days'])
         k1_pct = params.get('k1_pct', self.default_params['k1_pct'])
         k2_pct = params.get('k2_pct', self.default_params['k2_pct'])
         kf_pct = params.get('kf_pct', self.default_params['kf_pct'])
         tx_cost = params.get('transaction_cost', self.default_params['transaction_cost'])
-        
+
         T = maturity_days / 252
-        
+
         nav_series = pd.Series(index=df.index, dtype='float64')
         nav = 100.0
         nav_series.iloc[0] = nav
-        
+
         roll_dates = df.iloc[::maturity_days].index
-        
-        for i in range(1, len(df)):
-            date = df.index[i]
-            prev_date = df.index[i-1]
-            
-            S0 = df.loc[prev_date, 'S']
-            ST = df.loc[date, 'S']
-            r = df.loc[prev_date, 'Rf']
-            sigma = df.loc[prev_date, 'VIX'] / 100
-            
-            ret_stock = (ST - S0) / S0
-            nav *= (1 + ret_stock)
-            
-            if date in roll_dates and date != df.index[0]:
-                try:
-                    K1 = k1_pct * ST
-                    K2 = k2_pct * ST
-                    put1 = self.bs_put(ST, K1, T, r, sigma)
-                    put2 = self.bs_put(ST, K2, T, r, sigma)
-                    put_spread_cost = put1 - put2
-                    
-                    strike_fsc = kf_pct * ST
-                    call_premium = self.bs_call(ST, strike_fsc, T, r, sigma)
-                    
-                    net_cost = max(put_spread_cost - call_premium, 0)
-                    nav -= net_cost
-                    nav *= (1 - tx_cost)
-                
-                except:
-                    pass
-            
-            nav_series.loc[date] = nav
-        
+
+        for i in range(len(roll_dates) - 1):
+            t0 = roll_dates[i]
+            t1 = roll_dates[i + 1]
+
+            S0 = df.loc[t0, 'S']
+            r = df.loc[t0, 'Rf']
+            sigma = df.loc[t0, 'VIX'] / 100
+
+            K1 = k1_pct * S0
+            K2 = k2_pct * S0
+            strike_call = kf_pct * S0
+
+            try:
+                put_spread_cost = self.bs_put(S0, K1, T, r, sigma) - self.bs_put(S0, K2, T, r, sigma)
+                call_premium = self.bs_call(S0, strike_call, T, r, sigma)
+                net_cost = max(put_spread_cost - call_premium, 0)
+                nav -= net_cost
+                nav *= (1 - tx_cost)
+                has_position = True
+            except:
+                has_position = False
+
+            period_prices = df.loc[t0:t1, 'S']
+            for j in range(1, len(period_prices)):
+                date = period_prices.index[j]
+                S_prev = period_prices.iloc[j - 1]
+                S_curr = period_prices.iloc[j]
+
+                ret_stock = (S_curr - S_prev) / S_prev
+
+                if date == t1 and has_position:
+                    put_spread_payoff = max(K1 - S_curr, 0) - max(K2 - S_curr, 0)
+                    call_payoff = max(S_curr - strike_call, 0)
+                    ret_options = (put_spread_payoff - call_payoff) / S0
+                    total_ret = ret_stock + ret_options - tx_cost
+                else:
+                    total_ret = ret_stock
+
+                nav *= (1 + total_ret)
+                nav_series.loc[date] = nav
+
         nav_series = nav_series.ffill().fillna(100.0)
-        
+
         self.results = nav_series
         self.metrics = self.calculate_metrics(nav_series)
-        
+
         return nav_series, self.metrics
