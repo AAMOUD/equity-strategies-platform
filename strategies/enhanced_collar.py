@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
-from scipy.optimize import minimize
 from .base import BaseStrategy
 
 
@@ -37,31 +36,6 @@ class EnhancedCollarStrategy(BaseStrategy):
         d2 = d1 - sigma*np.sqrt(T)
         return np.exp(-q*T)*S*norm.cdf(d1) - K*np.exp(-r*T)*norm.cdf(d2)
     
-    @staticmethod
-    def calibrate_expOU_from_VIX(vix_series, lags=20):
-        """Calibrate exponential OU model from VIX data."""
-        try:
-            log_vix2 = np.log((vix_series / 100)**2).dropna()
-            if len(log_vix2) < lags:
-                return {'alpha': 0.1, 'k': 0.2}
-            
-            autocorrs = [log_vix2.autocorr(lag) for lag in range(1, lags + 1)]
-            
-            def ou_autocorr(alpha, lag):
-                return np.exp(-alpha * lag)
-            
-            def cost(params):
-                alpha = params[0]
-                return sum((ou_autocorr(alpha, lag) - autocorrs[lag - 1])**2 for lag in range(1, lags + 1))
-            
-            res = minimize(cost, x0=[0.1], bounds=[(0.001, 2.0)])
-            alpha = res.x[0]
-            k = np.sqrt(2 * alpha * np.var(log_vix2))
-            
-            return {'alpha': alpha, 'k': k}
-        except:
-            return {'alpha': 0.1, 'k': 0.2}
-    
     def run_backtest(self, price_data, vix_data, rf_data, params):
         """Execute enhanced collar strategy backtest."""
         df = pd.concat([price_data, vix_data, rf_data], axis=1).dropna()
@@ -95,8 +69,6 @@ class EnhancedCollarStrategy(BaseStrategy):
             
             if date in roll_dates and date != df.index[0]:
                 try:
-                    vix_window = df.loc[:date, 'VIX'].tail(252)
-                    
                     K1 = k1_pct * ST
                     K2 = k2_pct * ST
                     put1 = self.bs_put(ST, K1, T, r, sigma)
