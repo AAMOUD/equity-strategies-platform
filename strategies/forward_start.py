@@ -77,7 +77,7 @@ class ForwardStartStrategy(BaseStrategy):
 
                 if date == t1:
                     payoff_call = max(S_curr - strike, 0)
-                    ret_call = (premium - payoff_call) / S0
+                    ret_call = (premium - payoff_call) / S_prev
                     total_ret = ret_stock + ret_call - tx_cost
                 else:
                     total_ret = ret_stock
@@ -85,6 +85,9 @@ class ForwardStartStrategy(BaseStrategy):
                 nav *= (1 + total_ret)
                 nav_series.loc[date] = nav
         
+        nan_count = nav_series.isna().sum()
+        if nan_count > 0:
+            logging.warning(f"[{self.name}] {nan_count} missing nav values filled by forward-fill")
         nav_series = nav_series.ffill().fillna(100.0)
         
         self.results = nav_series
