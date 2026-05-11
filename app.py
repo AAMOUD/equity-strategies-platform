@@ -5,9 +5,10 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
+import plotly.express as px
 
 from utils import DataFetcher
-from backtest import BacktestEngine
+from backtest import BacktestEngine, walk_forward, sensitivity_grid
 from strategies.base import BaseStrategy
 from config import PARAM_BOUNDS
 
@@ -472,12 +473,13 @@ def main():
                 
                 st.markdown('<div class="section-header"><h2>Performance Analysis</h2></div>', unsafe_allow_html=True)
                 
-                tab1, tab2, tab3, tab4, tab5 = st.tabs([
+                tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
                     "NAV Comparison",
                     "Drawdown Analysis",
                     "Monthly Returns",
                     "Detailed Metrics",
                     "Model Comparison",
+                    "Robustness",
                 ])
                 
                 with tab1:
@@ -703,6 +705,90 @@ def main():
                                     for k, v in comp['metrics_ou'].items()
                                 ]),
                                 use_container_width=True, hide_index=True)
+
+                with tab6:
+                    if strategy == "Custom (User Code)":
+                        st.info("Robustness analysis is not available for custom strategies.")
+                    else:
+                        st.markdown("#### Walk-Forward Validation")
+                        wf_n = st.slider("Folds", 3, 10, 5, key="wf_splits")
+                        if st.button("Run Walk-Forward"):
+                            with st.spinner(f"Running {wf_n}-fold walk-forward..."):
+                                wf_df = walk_forward(
+                                    BacktestEngine, strategy,
+                                    price_data, vix_data, rf_data,
+                                    params, n_splits=wf_n
+                                )
+                                st.session_state["wf_result"] = wf_df
+
+                        if "wf_result" in st.session_state:
+                            wf_df = st.session_state["wf_result"]
+                            st.dataframe(
+                                wf_df.style.format({
+                                    "oos_sharpe": "{:.3f}",
+                                    "oos_return": "{:.2%}",
+                                    "oos_mdd":    "{:.2%}",
+                                }),
+                                use_container_width=True,
+                            )
+                            bar_colors = [
+                                "#10b981" if v >= 0 else "#ef4444"
+                                for v in wf_df["oos_sharpe"].fillna(0)
+                            ]
+                            fig_wf = go.Figure(go.Bar(
+                                x=wf_df["fold"].astype(str),
+                                y=wf_df["oos_sharpe"],
+                                marker_color=bar_colors,
+                            ))
+                            fig_wf.update_layout(
+                                title="OOS Sharpe by Fold",
+                                xaxis_title="Fold", yaxis_title="Sharpe",
+                                height=300,
+                                plot_bgcolor="rgba(0,0,0,0)",
+                                paper_bgcolor="rgba(0,0,0,0)",
+                            )
+                            st.plotly_chart(fig_wf, use_container_width=True)
+
+                        st.markdown("---")
+                        st.markdown("#### Parameter Sensitivity Heatmap")
+                        sens_params = [
+                            k for k in PARAM_BOUNDS.get(strategy, {})
+                            if k != "transaction_cost"
+                        ]
+                        if len(sens_params) >= 2:
+                            sc1, sc2, sc3 = st.columns(3)
+                            with sc1:
+                                p1 = st.selectbox("Parameter 1", sens_params, key="sens_p1")
+                            with sc2:
+                                p2 = st.selectbox(
+                                    "Parameter 2",
+                                    [p for p in sens_params if p != p1],
+                                    key="sens_p2",
+                                )
+                            with sc3:
+                                n_steps = st.slider("Grid resolution", 5, 12, 8, key="sens_steps")
+
+                            if st.button("Run Sensitivity Grid"):
+                                with st.spinner(f"Running {n_steps}×{n_steps} grid ({n_steps**2} backtests)..."):
+                                    grid = sensitivity_grid(
+                                        BacktestEngine, strategy,
+                                        price_data, vix_data, rf_data,
+                                        params, param1=p1, param2=p2, n_steps=n_steps,
+                                    )
+                                    st.session_state["sens_result"] = (grid, p1, p2)
+
+                            if "sens_result" in st.session_state:
+                                grid, gp1, gp2 = st.session_state["sens_result"]
+                                fig_heat = px.imshow(
+                                    grid,
+                                    labels={"x": gp2, "y": gp1, "color": "Sharpe"},
+                                    color_continuous_scale="RdYlGn",
+                                    aspect="auto",
+                                    title=f"Sharpe Ratio — {gp1} vs {gp2}",
+                                )
+                                st.plotly_chart(fig_heat, use_container_width=True)
+                        else:
+                            st.info("This strategy has fewer than 2 tunable parameters for sensitivity analysis.")
 
                 st.markdown("---")
                 
