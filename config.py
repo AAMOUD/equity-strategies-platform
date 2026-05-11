@@ -127,10 +127,11 @@ PARAM_BOUNDS = {
         'transaction_cost':   (0.0, 0.05, 0.0001),
     },
     'Vol-Target': {
-        'target_vol':       (0.05, 0.40, 0.01),
-        'lookback_days':    (5,    63,   1),
-        'rebalance_freq':   (1,    21,   1),
-        'transaction_cost': (0.0,  0.05, 0.0001),
+        'target_vol':         (0.05, 0.40, 0.01),
+        'lookback_days':      (5,    63,   1),
+        'rebalance_freq':     (1,    21,   1),
+        'exposure_halflife':  (2,    63,   1),
+        'transaction_cost':   (0.0,  0.05, 0.0001),
     },
     'ExpOU-Collar': {
         'maturity_days':    (21,   252,   1),

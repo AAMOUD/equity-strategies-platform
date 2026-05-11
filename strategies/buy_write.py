@@ -1,4 +1,5 @@
 """Buy-Write Strategy Implementation"""
+import logging
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
@@ -70,6 +71,9 @@ class BuyWriteStrategy(BaseStrategy):
                 nav *= (1 + total_ret)
                 nav_series.loc[date] = nav
         
+        nan_count = nav_series.isna().sum()
+        if nan_count > 0:
+            logging.warning(f"[{self.name}] {nan_count} missing nav values filled by forward-fill")
         nav_series = nav_series.ffill().fillna(100.0)
         
         self.results = nav_series
