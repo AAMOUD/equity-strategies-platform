@@ -17,6 +17,14 @@ class BaseStrategy(ABC):
         pass
 
     @staticmethod
+    def option_transaction_cost(vega, spread_factor=0.10):
+        """
+        Bid-ask spread proportional to option vega.
+        spread_factor: fraction of vega as proxy for spread (0.05-0.15 for liquid index options).
+        """
+        return spread_factor * abs(vega)
+
+    @staticmethod
     def compute_greeks(bs_func, S, K, T, r, sigma, bump=0.01):
         """Bump-and-reprice Greeks. bs_func: callable(S, K, T, r, sigma) -> price."""
         if T <= 0 or sigma <= 0:
