@@ -58,8 +58,15 @@ class ExpOUCollarStrategy(BaseStrategy):
             
             res = minimize(cost, x0=[0.1], bounds=[(0.001, 2.0)])
             alpha = res.x[0]
-            k = np.sqrt(2 * alpha * np.var(log_vix2))
-            m = np.exp(np.mean(log_vix2))
+
+            # k from one-step OU residuals: X_t = mu + rho*(X_{t-1}-mu) + eps
+            # Var(eps) = k^2/(2*alpha) * (1 - exp(-2*alpha))
+            mu = log_vix2.mean()
+            rho = np.exp(-alpha)
+            residuals = log_vix2.iloc[1:].values - mu - rho * (log_vix2.iloc[:-1].values - mu)
+            innov_var = np.var(residuals)
+            k = np.sqrt(innov_var * 2 * alpha / (1 - np.exp(-2 * alpha)))
+            m = np.exp(mu)
             
             return {'alpha': alpha, 'k': k, 'm': m}
         except Exception as e:
