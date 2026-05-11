@@ -10,10 +10,30 @@ class BaseStrategy(ABC):
         self.name = name
         self.results = None
         self.metrics = None
+        self.greeks_history = {}
 
     @abstractmethod
     def run_backtest(self, price_data, vix_data, rf_data, params):
         pass
+
+    @staticmethod
+    def compute_greeks(bs_func, S, K, T, r, sigma, bump=0.01):
+        """Bump-and-reprice Greeks. bs_func: callable(S, K, T, r, sigma) -> price."""
+        if T <= 0 or sigma <= 0:
+            return {'delta': np.nan, 'gamma': np.nan, 'vega': np.nan, 'theta': np.nan}
+
+        price     = bs_func(S, K, T, r, sigma)
+        price_up  = bs_func(S * (1 + bump), K, T, r, sigma)
+        price_dn  = bs_func(S * (1 - bump), K, T, r, sigma)
+        price_vup = bs_func(S, K, T, r, sigma + 0.01)
+        price_tup = bs_func(S, K, T - 1/252, r, sigma)
+
+        delta = (price_up - price_dn) / (2 * bump * S)
+        gamma = (price_up - 2 * price + price_dn) / (bump * S) ** 2
+        vega  = (price_vup - price) / 0.01
+        theta = (price_tup - price) / (1/252)
+
+        return {'delta': delta, 'gamma': gamma, 'vega': vega, 'theta': theta}
 
     @staticmethod
     def drawdown_series(nav_series):

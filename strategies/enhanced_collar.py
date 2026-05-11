@@ -74,6 +74,29 @@ class EnhancedCollarStrategy(BaseStrategy):
                 nav -= net_cost
                 nav *= (1 - tx_cost)
                 has_position = True
+
+                greeks_put_K1 = self.compute_greeks(
+                    lambda S, K, T, r, sigma: self.bs_put(S, K, T, r, sigma),
+                    S0, K1, T, r, sigma)
+                greeks_put_K2 = self.compute_greeks(
+                    lambda S, K, T, r, sigma: self.bs_put(S, K, T, r, sigma),
+                    S0, K2, T, r, sigma)
+                greeks_call = self.compute_greeks(
+                    lambda S, K, T, r, sigma: self.bs_call(S, K, T, r, sigma),
+                    S0, strike_call, T, r, sigma)
+
+                self.greeks_history[t0] = {
+                    'put_K1': greeks_put_K1,
+                    'put_K2': greeks_put_K2,
+                    'call':   greeks_call,
+                    'portfolio_delta': (1.0
+                        + greeks_put_K1['delta']
+                        - greeks_put_K2['delta']
+                        - greeks_call['delta']),
+                    'portfolio_vega': (greeks_put_K1['vega']
+                        - greeks_put_K2['vega']
+                        - greeks_call['vega']),
+                }
             except Exception as e:
                 logging.warning(f"[EnhancedCollar] pricing failed at {t0}: {e}")
                 has_position = False

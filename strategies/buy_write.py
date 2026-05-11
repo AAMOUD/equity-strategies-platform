@@ -51,7 +51,13 @@ class BuyWriteStrategy(BaseStrategy):
             strike = S0 * (1 + strike_offset)
             
             premium = self.bs_call(S0, strike, T, r, sigma)
-            
+
+            greeks = self.compute_greeks(
+                lambda S, K, T, r, sigma: self.bs_call(S, K, T, r, sigma),
+                S0, strike, T, r, sigma
+            )
+            self.greeks_history[t0] = {**greeks, 'portfolio_delta': 1.0 - greeks['delta']}
+
             period_prices = df.loc[t0:t1, 'S']
             for j in range(1, len(period_prices)):
                 date = period_prices.index[j]
