@@ -1,4 +1,5 @@
 """Volatility Targeting Strategy Implementation"""
+import logging
 import numpy as np
 import pandas as pd
 from .base import BaseStrategy
@@ -13,6 +14,7 @@ class VolTargetStrategy(BaseStrategy):
             'target_vol': 0.10,
             'lookback_days': 21,
             'rebalance_freq': 5,
+            'exposure_halflife': 10,
             'transaction_cost': 0.001
         }
     
@@ -23,7 +25,10 @@ class VolTargetStrategy(BaseStrategy):
         target_vol = params.get('target_vol', self.default_params['target_vol'])
         lookback = params.get('lookback_days', self.default_params['lookback_days'])
         rebal_freq = params.get('rebalance_freq', self.default_params['rebalance_freq'])
+        halflife = params.get('exposure_halflife', self.default_params['exposure_halflife'])
         tx_cost = params.get('transaction_cost', self.default_params['transaction_cost'])
+        # decay factor per rebalance step so half-life is consistent in calendar days
+        beta = np.exp(-np.log(2) * rebal_freq / halflife)
         
         nav = 100.0
         nav_series = pd.Series(index=df.index, dtype='float64')
@@ -48,7 +53,7 @@ class VolTargetStrategy(BaseStrategy):
                 if realized_vol > 0.01:
                     new_exposure = target_vol / realized_vol
                     new_exposure = np.clip(new_exposure, 0.0, 1.5)
-                    new_exposure = 0.5 * new_exposure + 0.5 * exposure
+                    new_exposure = (1 - beta) * new_exposure + beta * exposure
                     
                     if abs(new_exposure - exposure) > 0.05:
                         nav *= (1 - tx_cost * abs(new_exposure - exposure))
@@ -56,6 +61,9 @@ class VolTargetStrategy(BaseStrategy):
             
             nav_series.loc[date] = nav
         
+        nan_count = nav_series.isna().sum()
+        if nan_count > 0:
+            logging.warning(f"[{self.name}] {nan_count} missing nav values filled by forward-fill")
         nav_series = nav_series.ffill().fillna(100.0)
         
         self.results = nav_series
