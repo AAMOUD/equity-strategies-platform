@@ -46,3 +46,27 @@ class BacktestEngine:
         }
 
         return nav_series, metrics, benchmark, benchmark_metrics
+
+    @staticmethod
+    def run_comparison(price_data, vix_data, rf_data, params):
+        """
+        Runs Enhanced Collar (BS) vs ExpOU-Collar side by side.
+        Returns both NAV series + the pricing diff at each roll date.
+        """
+        bs_strat = EnhancedCollarStrategy()
+        ou_strat = ExpOUCollarStrategy()
+
+        nav_bs, metrics_bs = bs_strat.run_backtest(price_data, vix_data, rf_data, params)
+        nav_ou, metrics_ou = ou_strat.run_backtest(price_data, vix_data, rf_data, params)
+
+        nav_diff  = nav_ou - nav_bs
+        cum_alpha = (nav_ou / nav_bs - 1) * 100
+
+        return {
+            'nav_bs':     nav_bs,
+            'nav_ou':     nav_ou,
+            'metrics_bs': metrics_bs,
+            'metrics_ou': metrics_ou,
+            'nav_diff':   nav_diff,
+            'cum_alpha':  cum_alpha,
+        }

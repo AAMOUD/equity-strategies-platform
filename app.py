@@ -472,11 +472,12 @@ def main():
                 
                 st.markdown('<div class="section-header"><h2>Performance Analysis</h2></div>', unsafe_allow_html=True)
                 
-                tab1, tab2, tab3, tab4 = st.tabs([
-                    "NAV Comparison", 
-                    "Drawdown Analysis", 
+                tab1, tab2, tab3, tab4, tab5 = st.tabs([
+                    "NAV Comparison",
+                    "Drawdown Analysis",
                     "Monthly Returns",
-                    "Detailed Metrics"
+                    "Detailed Metrics",
+                    "Model Comparison",
                 ])
                 
                 with tab1:
@@ -648,7 +649,61 @@ def main():
                     comparison_df = pd.DataFrame(comparison_data)
                     st.dataframe(comparison_df, use_container_width=True, hide_index=True)
                     st.markdown('</div>', unsafe_allow_html=True)
-                
+
+                with tab5:
+                    st.markdown("Runs Enhanced Collar (BS flat vol) against ExpOU-Collar (OU-calibrated vol) on the same data and params.")
+                    if st.button("Run ExpOU vs BS Comparison"):
+                        with st.spinner("Running comparison..."):
+                            comp = BacktestEngine.run_comparison(price_data, vix_data, rf_data, params)
+                            st.session_state['model_comparison'] = comp
+
+                    if 'model_comparison' in st.session_state:
+                        comp = st.session_state['model_comparison']
+
+                        fig_cmp = go.Figure()
+                        fig_cmp.add_trace(go.Scatter(
+                            x=comp['nav_bs'].index, y=comp['nav_bs'].values,
+                            name='Enhanced Collar (BS)', line=dict(color='#3b82f6', width=2)))
+                        fig_cmp.add_trace(go.Scatter(
+                            x=comp['nav_ou'].index, y=comp['nav_ou'].values,
+                            name='ExpOU-Collar', line=dict(color='#f59e0b', width=2)))
+                        fig_cmp.update_layout(
+                            title='BS vs ExpOU NAV', xaxis_title='Date', yaxis_title='NAV',
+                            height=450, hovermode='x unified',
+                            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+                        st.plotly_chart(fig_cmp, use_container_width=True)
+
+                        fig_alpha = go.Figure()
+                        fig_alpha.add_trace(go.Scatter(
+                            x=comp['cum_alpha'].index, y=comp['cum_alpha'].values,
+                            name='Cumulative alpha OU vs BS (%)',
+                            fill='tozeroy', line=dict(color='#10b981', width=2),
+                            fillcolor='rgba(16, 185, 129, 0.2)'))
+                        fig_alpha.update_layout(
+                            title='Cumulative Alpha: ExpOU vs BS (%)',
+                            xaxis_title='Date', yaxis_title='Alpha (%)',
+                            height=350, hovermode='x unified',
+                            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+                        st.plotly_chart(fig_alpha, use_container_width=True)
+
+                        col_bs, col_ou = st.columns(2)
+                        with col_bs:
+                            st.subheader("Enhanced Collar (BS)")
+                            st.dataframe(
+                                pd.DataFrame([
+                                    {'Metric': k, 'Value': f"{v:.4f}" if isinstance(v, float) else v}
+                                    for k, v in comp['metrics_bs'].items()
+                                ]),
+                                use_container_width=True, hide_index=True)
+                        with col_ou:
+                            st.subheader("ExpOU-Collar")
+                            st.dataframe(
+                                pd.DataFrame([
+                                    {'Metric': k, 'Value': f"{v:.4f}" if isinstance(v, float) else v}
+                                    for k, v in comp['metrics_ou'].items()
+                                ]),
+                                use_container_width=True, hide_index=True)
+
                 st.markdown("---")
                 
                 st.markdown('<div class="section-header"><h2>Strategy Configuration</h2></div>', unsafe_allow_html=True)
