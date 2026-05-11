@@ -62,7 +62,7 @@ class BuyWriteStrategy(BaseStrategy):
                 if date == t1:
                     payoff_call = max(S_curr - strike, 0)
                     premium_fv = premium * np.exp(r * T)
-                    ret_call = (premium_fv - payoff_call) / S0
+                    ret_call = (premium_fv - payoff_call) / S_prev
                     total_ret = ret_stock + ret_call - tx_cost
                 else:
                     total_ret = ret_stock
